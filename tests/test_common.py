@@ -33,6 +33,22 @@ class UpdateGistTest(unittest.TestCase):
             common.update_gist("g", "t", "rank.txt", "same")
         self.assertEqual(api.call_count, 1)
 
+    def test_gist_api_error_exits_with_hint(self):
+        err = common.urllib.error.HTTPError("u", 404, "nf", {}, io.BytesIO(b"Not Found"))
+        with mock.patch.object(common, "api", side_effect=err), self.assertRaises(SystemExit) as cm:
+            common.update_gist("g", "t", "rank.txt", "new")
+        self.assertIn("gist スコープ", str(cm.exception))
+
+
+class ApiTest(unittest.TestCase):
+    def test_sends_token_and_body(self):
+        res = mock.MagicMock()
+        res.__enter__.return_value = io.BytesIO(b'{"ok": 1}')
+        with mock.patch.object(common.urllib.request, "urlopen", return_value=res) as urlopen:
+            self.assertEqual(common.api("POST", "https://x", "tok", {"a": 1}), {"ok": 1})
+        req = urlopen.call_args.args[0]
+        self.assertEqual((req.get_method(), req.get_header("Authorization"), req.data), ("POST", "Bearer tok", b'{"a": 1}'))
+
 
 if __name__ == "__main__":
     unittest.main()

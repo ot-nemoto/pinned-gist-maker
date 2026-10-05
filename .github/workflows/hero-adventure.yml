@@ -34,10 +34,10 @@ jobs:
       - name: Test
         run: python -m unittest discover -s tests
 
-      # Repository variable GIST_ID_RPG が未設定ならステップごと実行しない（状態も作らない）。
+      # Test が失敗した日と、Repository variable GIST_ID_RPG が未設定のときは実行しない（状態も作らない）。
       # コントリビューション数を取得できなかった日は、次の実行でさかのぼって進める。
       - name: Advance RPG
-        if: ${{ vars.GIST_ID_RPG != '' }}
+        if: ${{ success() && vars.GIST_ID_RPG != '' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GIST_PAT: ${{ secrets.GIST_PAT }}
