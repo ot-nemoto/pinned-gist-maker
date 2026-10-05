@@ -1,0 +1,45 @@
+{
+  "day": 1,
+  "lap": 1,
+  "lap_day": 1,
+  "pos": 3,
+  "boss_cleared": [],
+  "hero": {
+    "level": 2,
+    "exp": 6,
+    "max_hp": 40,
+    "hp": 40,
+    "base_atk": 8,
+    "base_def": 3,
+    "gold": 23,
+    "potions": 1,
+    "weapon": {
+      "name": "銅の剣",
+      "power": 3
+    },
+    "armor": null
+  },
+  "kills": 2,
+  "deaths": 0,
+  "last_date": "2026-10-06",
+  "last": {
+    "date": "2026-10-06",
+    "contributions": 13,
+    "steps": 3,
+    "events": [
+      "はじまりの村で休んだ、銅の剣を買った",
+      "ゴブリンを倒した！ (+7EXP)",
+      "レベルが上がった！ Lv.2",
+      "おおねずみを倒した！ (+5EXP)",
+      "道端に小さな花が咲いている"
+    ]
+  },
+  "journal": [
+    {
+      "date": "2026-10-06",
+      "contributions": 13,
+      "text": "はじまりの村で休んだ、銅の剣を買った / ゴブリンを倒した！ (+7EXP) / レベルが上がった！ Lv.2 / おおねずみを倒した！ (+5EXP) / 道端に小さな花が咲いている"
+    }
+  ],
+  "records": []
+}
