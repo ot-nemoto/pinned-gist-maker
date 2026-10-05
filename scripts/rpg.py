@@ -33,10 +33,10 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
-import ranking  # noqa: E402
+import common  # noqa: E402
 
-WORLD_PATH = ranking.ROOT / "rpg_world.json"
-STATE_PATH = ranking.ROOT / ".state" / "rpg.json"
+WORLD_PATH = common.ROOT / "rpg_world.json"
+STATE_PATH = common.ROOT / ".state" / "rpg.json"
 FILENAME = "hero-adventure.txt"
 JOURNAL_DAYS = 30
 CATCH_UP_DAYS = 7  # 実行されなかった日をさかのぼって進める最大の日数
@@ -303,11 +303,11 @@ def advance(world: dict, state: dict, today: date, contributions: int) -> bool:
 
 
 # ---- 表示 ---------------------------------------------------------------------------
-def fit(text: str, limit: int = ranking.LINE_MAX) -> str:
+def fit(text: str, limit: int = common.LINE_MAX) -> str:
     """表示幅が limit を超えたら末尾を「…」にして詰める。"""
-    if ranking.width(text) <= limit:
+    if common.width(text) <= limit:
         return text
-    while ranking.width(text) > limit - 1:
+    while common.width(text) > limit - 1:
         text = text[:-1]
     return text + "…"
 
@@ -348,7 +348,7 @@ def highlights(events: list[str], n: int = 2) -> list[str]:
 
 def build_text(world: dict, state: dict) -> str:
     hero, area = state["hero"], area_at(world, state["pos"])
-    hp_bar = ranking.bar(hero["hp"], hero["max_hp"], 10).replace(" ", "░")
+    hp_bar = common.bar(hero["hp"], hero["max_hp"], 10).replace(" ", "░")
     last = state["last"] or {"contributions": 0, "events": ["冒険の始まり"]}
     summary = "、".join(highlights(last["events"])) if last["events"] else "何も起きなかった"
     lines = [
@@ -383,9 +383,9 @@ def build_text(world: dict, state: dict) -> str:
 # ---- コントリビューション数 -----------------------------------------------------------
 def post_graphql(token: str, body: dict) -> dict:
     """5xx・429・通信エラーは RETRY_WAITS に従って再試行する（401/403 などはすぐに諦める）。"""
-    for wait in (*ranking.RETRY_WAITS, None):
+    for wait in (*common.RETRY_WAITS, None):
         try:
-            return ranking.api("POST", GRAPHQL, token, body)
+            return common.api("POST", GRAPHQL, token, body)
         except urllib.error.HTTPError as e:
             if wait is None or not (e.code >= 500 or e.code == 429):
                 raise
@@ -398,7 +398,7 @@ def post_graphql(token: str, body: dict) -> dict:
 
 def fetch_contributions(login: str, day: date, tokens: list[str]) -> int:
     """day（JST の 1 日）のコントリビューション数。どのトークンでも取れなければ FetchError。"""
-    start = datetime.combine(day, time.min, tzinfo=ranking.JST)
+    start = datetime.combine(day, time.min, tzinfo=common.JST)
     variables = {"login": login, "from": start.isoformat(),
                  "to": (start + timedelta(days=1) - timedelta(seconds=1)).isoformat()}
     errors = []
@@ -413,7 +413,7 @@ def fetch_contributions(login: str, day: date, tokens: list[str]) -> int:
             errors.append(str(res.get("errors") or "user が見つからない"))
             continue
         return sum(user["contributionsCollection"].values())
-    raise ranking.FetchError(f"コントリビューション数を取得できません: {'; '.join(errors) or 'トークンがありません'}")
+    raise common.FetchError(f"コントリビューション数を取得できません: {'; '.join(errors) or 'トークンがありません'}")
 
 
 def pending_days(state: dict, today: date) -> list[date]:
@@ -433,7 +433,7 @@ def main() -> int:
 
     world = load_world()
     state = load_state(world)
-    today = date.fromisoformat(a.date) if a.date else datetime.now(timezone.utc).astimezone(ranking.JST).date()
+    today = date.fromisoformat(a.date) if a.date else datetime.now(timezone.utc).astimezone(common.JST).date()
 
     days = pending_days(state, today)
     advanced = 0
@@ -449,8 +449,8 @@ def main() -> int:
         for day in days:  # 実行されなかった日があれば、古い日から 1 日ずつ進める
             try:
                 contributions = fetch_contributions(login, day - timedelta(days=1), tokens)
-            except ranking.FetchError as e:
-                ranking.warn(f"{e}。{day} から先は進めません（次の実行で、この日からさかのぼって進めます）")
+            except common.FetchError as e:
+                common.warn(f"{e}。{day} から先は進めません（次の実行で、この日からさかのぼって進めます）")
                 break
             advanced += advance(world, state, day, contributions)
     if days and not advanced:
@@ -469,7 +469,7 @@ def main() -> int:
     token = os.environ.get("GIST_PAT")
     if not token:
         raise SystemExit("GIST_PAT を環境変数で指定してください")
-    ranking.update_gist(gist_id, token, FILENAME, content)
+    common.update_gist(gist_id, token, FILENAME, content)
     return 0
 
 

@@ -1,0 +1,54 @@
+import io
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import common  # noqa: E402
+
+
+class DisplayTest(unittest.TestCase):
+    def test_width_counts_wide_chars_as_two(self):
+        self.assertEqual(common.width("aあ🗻"), 5)
+
+    def test_bar(self):
+        self.assertEqual(common.bar(0, 100, 4), "    ")
+        self.assertEqual(common.bar(0, 0, 4), "    ")
+        self.assertEqual(common.bar(1, 100, 4), "█   ")
+        self.assertEqual(common.bar(100, 100, 4), "████")
+
+
+class UpdateGistTest(unittest.TestCase):
+    def test_renames_single_placeholder_file(self):
+        with mock.patch.object(common, "api", side_effect=[{"files": {"gistfile1.txt": {"content": "x"}}}, {}]) as api, \
+             mock.patch("sys.stdout", io.StringIO()):
+            common.update_gist("g", "t", "rank.txt", "new")
+        self.assertEqual(api.call_args.args[3],
+                         {"files": {"gistfile1.txt": {"filename": "rank.txt", "content": "new"}}})
+
+    def test_skips_when_unchanged(self):
+        with mock.patch.object(common, "api", return_value={"files": {"rank.txt": {"content": "same"}}}) as api, \
+             mock.patch("sys.stdout", io.StringIO()):
+            common.update_gist("g", "t", "rank.txt", "same")
+        self.assertEqual(api.call_count, 1)
+
+    def test_gist_api_error_exits_with_hint(self):
+        err = common.urllib.error.HTTPError("u", 404, "nf", {}, io.BytesIO(b"Not Found"))
+        with mock.patch.object(common, "api", side_effect=err), self.assertRaises(SystemExit) as cm:
+            common.update_gist("g", "t", "rank.txt", "new")
+        self.assertIn("gist スコープ", str(cm.exception))
+
+
+class ApiTest(unittest.TestCase):
+    def test_sends_token_and_body(self):
+        res = mock.MagicMock()
+        res.__enter__.return_value = io.BytesIO(b'{"ok": 1}')
+        with mock.patch.object(common.urllib.request, "urlopen", return_value=res) as urlopen:
+            self.assertEqual(common.api("POST", "https://x", "tok", {"a": 1}), {"ok": 1})
+        req = urlopen.call_args.args[0]
+        self.assertEqual((req.get_method(), req.get_header("Authorization"), req.data), ("POST", "Bearer tok", b'{"a": 1}'))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,4 +1,7 @@
-name: Update framework ranking gists
+name: Advance hero adventure (text RPG)
+
+# テキスト RPG を 1 日分進め、Pinned Gist を更新する（前日のコントリビューション数で進む歩数が決まる）。
+# 状態は .state/rpg.json に保存し、最後に master にコミットする。
 
 on:
   schedule:
@@ -7,19 +10,19 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: update-ranking
+  group: hero-adventure
   cancel-in-progress: false
 
 permissions:
-  contents: write # ★数の記録（.state/*.json）と keepalive（.state/last-run）をコミットするために必要
+  contents: write # RPG の状態（.state/rpg.json）と keepalive（.state/last-run）をコミットするために必要
 
 jobs:
-  update:
+  advance:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       # 起動時点の SHA ではなくブランチの先端を取る。実行が重なって待たされた場合も、
-      # 先行の実行がコミットした .state/stars.json の上に記録を積めるようにする（rebase 時の衝突を防ぐ）
+      # 先行の実行がコミットした .state/rpg.json の続きから進める
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.repository.default_branch }}
@@ -29,25 +32,12 @@ jobs:
           python-version: "3.12"
 
       - name: Test
-        id: test
         run: python -m unittest discover -s tests
 
-      # Repository variable GIST_ID_FRONTEND / GIST_ID_BACKEND が未設定のカテゴリはスキップされる。
-      # ★数の取得に失敗したカテゴリも更新をスキップし（前回の内容が残る）、ジョブは成功扱いにする。
-      - name: Update ranking gists
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GIST_PAT: ${{ secrets.GIST_PAT }}
-          GIST_ID_FRONTEND: ${{ vars.GIST_ID_FRONTEND }}
-          GIST_ID_BACKEND: ${{ vars.GIST_ID_BACKEND }}
-          STALE_DAYS: ${{ vars.STALE_DAYS || '365' }}
-        run: python scripts/ranking.py
-
-      # テキスト RPG を 1 日分進める（前日のコントリビューション数で進む歩数が決まる）。状態は .state/rpg.json。
-      # Repository variable GIST_ID_RPG が未設定ならステップごと実行しない（状態も作らない）。
+      # Test が失敗した日と、Repository variable GIST_ID_RPG が未設定のときは実行しない（状態も作らない）。
       # コントリビューション数を取得できなかった日は、次の実行でさかのぼって進める。
       - name: Advance RPG
-        if: ${{ !cancelled() && steps.test.outcome == 'success' && vars.GIST_ID_RPG != '' }}
+        if: ${{ success() && vars.GIST_ID_RPG != '' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GIST_PAT: ${{ secrets.GIST_PAT }}
@@ -55,11 +45,11 @@ jobs:
           RPG_USER: ${{ vars.RPG_USER || github.repository_owner }}
         run: python scripts/rpg.py
 
-      # ranking.py が更新した★数の記録（.state/stars.json）と、rpg.py が更新した RPG の状態（.state/rpg.json）を
-      # master にコミットする。
+      # rpg.py が更新した状態（.state/rpg.json）を master にコミットする。
       # あわせて 60 日間アクティビティがないと scheduled workflow が停止するのを防ぐため、
       # .state/last-run も更新する（keepalive）。変更が無ければコミットしない。
-      - name: Commit state (star history + RPG + keepalive)
+      # Test が失敗した日も keepalive は残す（!cancelled()）。
+      - name: Commit state (RPG + keepalive)
         if: ${{ !cancelled() }}
         run: |
           TODAY=$(TZ=Asia/Tokyo date +%F)
@@ -68,13 +58,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .state/last-run
-          for f in .state/stars.json .state/rpg.json; do
-            if [ -f "$f" ]; then git add "$f"; fi
-          done
+          if [ -f .state/rpg.json ]; then git add .state/rpg.json; fi
           if git diff --cached --quiet; then
             echo "変更なし"
           else
-            if git diff --cached --quiet -- .state/stars.json .state/rpg.json; then
+            if git diff --cached --quiet -- .state/rpg.json; then
               MSG="chore: keepalive $TODAY"
             else
               MSG="chore: update state $TODAY"
