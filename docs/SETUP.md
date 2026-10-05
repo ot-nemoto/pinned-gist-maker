@@ -58,6 +58,20 @@ master にブランチ保護（PR 必須など）を設定すると、このコ�
    どちらも pre-release で作るので、「Latest release」にはならない
 3. 以後は毎日 JST 3:37 に自動で実行される。手元で読むときは `scripts/sync_data.sh` で同期する（[RELEASE_DATA.md](RELEASE_DATA.md)）
 
+## 8. 勇者の冒険（テキスト RPG）
+
+1. https://gist.github.com で **public** Gist を 1 つ作る（中身は適当な 1 行、ファイルは 1 つ）。
+   ファイル名は初回実行時に `hero-adventure.txt` へ自動でリネームされる
+2. Gist の ID を Repository variable **`GIST_ID_RPG`** に登録する（PAT は手順 2 の `GIST_PAT` を使い回す）
+3. 任意で Variable **`RPG_USER`** に、コントリビューションを数える GitHub ユーザー名を登録する（既定はリポジトリの持ち主。
+   持ち主が Organization のときは必ず登録する）
+4. **Actions** → *Update framework ranking gists* → **Run workflow** で初日を進め、Gist を Pin する
+
+`GIST_ID_RPG` が未設定のあいだは、workflow の Advance RPG ステップは実行されない（`.state/rpg.json` も作られない）。
+
+前日のコントリビューション数は GitHub の GraphQL で取る。`GIST_PAT` で取り、取れなければ workflow 標準の `GITHUB_TOKEN` で取り直す。
+非公開リポジトリでの活動は、プロフィールの設定（Private contributions を表示するか）によって数に入らないことがある。
+
 ## トラブルシューティング
 
 | 症状 | 原因 |
@@ -76,5 +90,7 @@ master にブランチ保護（PR 必須など）を設定すると、このコ�
 | *Collect GitHub star data* が `取れた件数が対象の 95% 未満` / `検索に失敗した` で失敗する | GitHub の一時的な障害。その日の分は添付されない（欠ける）。翌日の実行で続きから記録される。すぐ取り直したいなら手動実行する |
 | *Collect GitHub star data* が `data-latest に repos.parquet がありません` で失敗する | 前回の上書きの途中で失敗した。その月の `repos-YYYY-MM.parquet` を `repos.parquet` として `data-latest` に添付し直して再実行する（[RELEASE_DATA.md](RELEASE_DATA.md)）。作り直してよければ手動実行で `fresh` を指定 |
 | *Collect GitHub star data* がタイムアウトする | 対象の件数が増えた。`collect-stars.yml` の `timeout-minutes` を延ばす |
+| 警告 `コントリビューション数を取得できません。… から先は進めません` | GraphQL の取得に失敗した（トークンの権限や GitHub の不調。一時的なエラーは再試行している）。次の実行で、その日からさかのぼって進む（最大 7 日分） |
+| `.state/rpg.json が JSON として読めません`（ジョブが失敗する） | マージ衝突などでファイルが壊れた。master の履歴から直前の正しい内容に戻す |
 | workflow が動かない | 60 日無活動で停止。Actions タブで *Enable workflow*（keepalive で通常は防げる） |
 | 実行が数十分遅れる | Actions の cron は遅延することがある（仕様） |
