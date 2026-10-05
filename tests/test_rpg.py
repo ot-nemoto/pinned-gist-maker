@@ -9,7 +9,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-import ranking  # noqa: E402
+import common  # noqa: E402
 import rpg  # noqa: E402
 
 WORLD = rpg.load_world()
@@ -149,7 +149,7 @@ class DisplayTest(unittest.TestCase):
         for state in (rpg.new_state(WORLD), play(1), play(40), play(120, contributions=6)):
             lines = rpg.build_text(WORLD, state).splitlines()
             for line in lines[:5]:
-                self.assertLessEqual(ranking.width(line), ranking.LINE_MAX, line)
+                self.assertLessEqual(common.width(line), common.LINE_MAX, line)
             self.assertEqual(lines[5], "")  # カードの 5 行のあとに詳細が続く
             self.assertTrue(lines[0].startswith("⚔️ Day"))
 
@@ -209,7 +209,7 @@ class ContributionsTest(unittest.TestCase):
             "totalCommitContributions": 3, "totalIssueContributions": 1, "totalPullRequestContributions": 1,
             "totalPullRequestReviewContributions": 0, "restrictedContributionsCount": 2}}}}
         denied = {"errors": [{"message": "Resource not accessible by integration"}]}
-        with mock.patch.object(ranking, "api", side_effect=[denied, ok]) as api:
+        with mock.patch.object(common, "api", side_effect=[denied, ok]) as api:
             self.assertEqual(rpg.fetch_contributions("me", DAY, ["t1", "t2"]), 7)
         body = api.call_args.args[3]
         self.assertEqual(body["variables"]["from"], "2026-10-06T00:00:00+09:00")  # JST の 1 日
@@ -218,15 +218,15 @@ class ContributionsTest(unittest.TestCase):
     def test_retries_server_errors(self):
         ok = {"data": {"user": {"contributionsCollection": {"totalCommitContributions": 2}}}}
         err = rpg.urllib.error.HTTPError("u", 502, "bad", {}, None)
-        with mock.patch.object(ranking, "api", side_effect=[err, ok]), mock.patch.object(rpg.time_module, "sleep"):
+        with mock.patch.object(common, "api", side_effect=[err, ok]), mock.patch.object(rpg.time_module, "sleep"):
             self.assertEqual(rpg.fetch_contributions("me", DAY, ["t1"]), 2)
 
     def test_all_tokens_fail(self):
-        with mock.patch.object(ranking, "api", side_effect=OSError("down")) as api, \
-             mock.patch.object(rpg.time_module, "sleep"), self.assertRaises(ranking.FetchError):
+        with mock.patch.object(common, "api", side_effect=OSError("down")) as api, \
+             mock.patch.object(rpg.time_module, "sleep"), self.assertRaises(common.FetchError):
             rpg.fetch_contributions("me", DAY, ["t1"])
-        self.assertEqual(api.call_count, len(ranking.RETRY_WAITS) + 1)  # 通信エラーは再試行してから諦める
-        with self.assertRaises(ranking.FetchError):
+        self.assertEqual(api.call_count, len(common.RETRY_WAITS) + 1)  # 通信エラーは再試行してから諦める
+        with self.assertRaises(common.FetchError):
             rpg.fetch_contributions("me", DAY, [])
 
 
@@ -235,7 +235,7 @@ class MainTest(unittest.TestCase):
         saved = {}
         with mock.patch.object(rpg, "load_state", return_value=state), \
              mock.patch.object(rpg, "save_state", side_effect=lambda s: saved.setdefault("s", copy.deepcopy(s))), \
-             mock.patch.object(ranking, "update_gist") as gist, \
+             mock.patch.object(common, "update_gist") as gist, \
              mock.patch.object(sys, "argv", ["rpg.py", *argv]), mock.patch.dict("os.environ", env or {}, clear=True), \
              mock.patch("sys.stdout"):
             rpg.main()
@@ -266,15 +266,15 @@ class MainTest(unittest.TestCase):
 
     def test_stops_at_the_first_failed_day(self):
         state = play(1)
-        with mock.patch.object(rpg, "fetch_contributions", side_effect=[3, ranking.FetchError("x")]), \
-             mock.patch.object(ranking, "warn"):
+        with mock.patch.object(rpg, "fetch_contributions", side_effect=[3, common.FetchError("x")]), \
+             mock.patch.object(common, "warn"):
             saved, _ = self.run_main(state, ["--date", (DAY + timedelta(days=3)).isoformat()],
                                      {"RPG_USER": "me", "GIST_ID_RPG": "g", "GIST_PAT": "p"})
         self.assertEqual(saved["last_date"], (DAY + timedelta(days=1)).isoformat())  # 失敗した日から次回やり直す
 
     def test_fetch_failure_skips_the_day(self):
-        with mock.patch.object(rpg, "fetch_contributions", side_effect=ranking.FetchError("x")), \
-             mock.patch.object(ranking, "warn"):
+        with mock.patch.object(rpg, "fetch_contributions", side_effect=common.FetchError("x")), \
+             mock.patch.object(common, "warn"):
             saved, gist = self.run_main(rpg.new_state(WORLD), ["--date", "2026-10-06"],
                                         {"RPG_USER": "me", "GIST_ID_RPG": "g", "GIST_PAT": "p"})
         self.assertIsNone(saved)
