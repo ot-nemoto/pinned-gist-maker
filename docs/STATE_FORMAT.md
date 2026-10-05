@@ -7,9 +7,10 @@ GitHub 全体の★数のデータ（GitHub Releases に置く Parquet）は [RE
 | ファイル | 書き込み元 | 中身 |
 |---|---|---|
 | [`stars.json`](#starsjson) | `scripts/ranking.py` | 掲載中のフレームワークの日ごとの★数 |
+| [`rpg.json`](#rpgjson) | `scripts/rpg.py` | テキスト RPG の勇者の状態・日誌・周回の記録 |
 | [`last-run`](#last-run) | update-ranking.yml の Commit state ステップ | 最終実行日 |
 
-共通の決まり:
+共通の決まり（`stars.json` についての決まり。`rpg.json` は[その節](#rpgjson)を参照）:
 
 - 日付はすべて JST の `YYYY-MM-DD`（文字列）
 - リポジトリは `owner/repo` の形の文字列で、`frameworks.json` に書いた表記（大文字小文字もそのまま）
@@ -58,6 +59,47 @@ GitHub 全体の★数のデータ（GitHub Releases に置く Parquet）は [RE
 - `--dry-run` / `--sample` のときは書き込まない。`--category` を指定したときは指定したカテゴリだけ記録する（workflow では使っていない）
 
 使い方の例: ある日と 7 日前の★数の差で伸び幅を出す（`history.base_date()` が起点の日付を選ぶ）。
+
+---
+
+## rpg.json
+
+テキスト RPG（[README](../README.md#勇者の冒険テキスト-rpg)）の状態です。`scripts/rpg.py` が毎日 1 日分進めて上書きします。
+世界の設定（エリア・敵・アイテム）は `rpg_world.json` にあり、ここには勇者の状態だけを持ちます。
+
+```json
+{
+  "day": 37,
+  "lap": 1,
+  "lap_day": 37,
+  "pos": 26,
+  "boss_cleared": ["草原"],
+  "hero": {"level": 7, "exp": 120, "max_hp": 90, "hp": 74, "base_atk": 23, "base_def": 8,
+           "gold": 340, "potions": 2, "weapon": {"name": "鉄の剣", "power": 7}, "armor": null},
+  "kills": 41,
+  "deaths": 0,
+  "last_date": "2026-11-11",
+  "last": {"date": "2026-11-11", "contributions": 3, "steps": 2, "events": ["ウルフを倒した！ (+10EXP)", "…"]},
+  "journal": [{"date": "2026-11-11", "contributions": 3, "text": "ウルフを倒した！ (+10EXP) / …"}],
+  "records": [{"lap": 1, "days": 92, "deaths": 1, "level": 12, "cleared_on": "2027-01-05"}]
+}
+```
+
+| 項目 | 中身 |
+|---|---|
+| `day` | 通算の日数（周回をまたいで数える） |
+| `lap` / `lap_day` | 何周目か / その周の何日目か |
+| `pos` | 今いるマス（0 から。エリアの最初のマスが町、最後のマスがボス） |
+| `boss_cleared` | この周で倒したボスのエリア名 |
+| `hero` | レベル、経験値（次のレベルまでの途中の値）、HP、基本の攻撃力・防御力、所持金、回復薬、装備 |
+| `kills` / `deaths` | この周で倒した敵の数 / 力尽きた回数 |
+| `last_date` | 最後に進めた日（JST）。同じ日に再実行しても進めないための印 |
+| `last` | その日の結果（前日のコントリビューション数、進んだ歩数、出来事） |
+| `journal` | 日誌。新しい順に直近 30 日分（`JOURNAL_DAYS`） |
+| `records` | クリアした周の記録（何日でクリアしたか、力尽きた回数、レベル）。無制限に残す |
+
+- 魔王を倒すと `records` に記録を足し、`lap` を 1 増やして、`pos`・`hero`・`kills`・`deaths` を最初の状態に戻します。
+- コントリビューション数を取得できなかった日は、何も変えません（翌日の実行で続きから進みます）。
 
 ---
 

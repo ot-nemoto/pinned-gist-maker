@@ -12,8 +12,9 @@ flowchart LR
         direction TB
         test["Test<br/>（unittest）"]
         ranking["ranking.py<br/>★総数ランキング"]
+        rpg["rpg.py<br/>テキスト RPG を 1 日進める"]
         commit["Commit state<br/>（master に直接コミット）"]
-        test ==> ranking ==> commit
+        test ==> ranking ==> rpg ==> commit
     end
 
     subgraph weekly["discover-frameworks.yml（毎週月曜 JST 7:37）"]
@@ -26,6 +27,7 @@ flowchart LR
 
     subgraph state[".state/（master にコミット）"]
         stars[("stars.json<br/>掲載中フレームワークの<br/>日ごとの★数")]
+        rpgState[("rpg.json<br/>勇者の状態・日誌・周回の記録")]
         lastRun[("last-run<br/>keepalive 用の日付")]
     end
 
@@ -35,6 +37,9 @@ flowchart LR
     end
 
     gists["Pinned Gist<br/>frontend / backend<br/>★総数ランキング"]
+    rpgGist["Pinned Gist<br/>勇者の冒険"]
+    world[("rpg_world.json<br/>エリア・敵・アイテム")]
+    contrib["GitHub GraphQL<br/>前日のコントリビューション数"]
     issues["Issue<br/>framework-candidate"]
     awesome["awesome リスト<br/>（awesome-go など）"]
     local["手元の分析<br/>sync_data.sh + DuckDB"]
@@ -45,6 +50,11 @@ flowchart LR
     ranking -->|"★数・言語"| gists
     ranking -->|"今日の★数を追記"| stars
     commit -->|"日付を更新"| lastRun
+
+    world --> rpg
+    contrib -->|"進む歩数"| rpg
+    rpgState <-->|"前日の状態を読み、今日の分を書く"| rpg
+    rpg -->|"冒険の様子"| rpgGist
 
     discover -->|"候補ごとに作成"| issues
     issues -->|"既存候補（Open / Closed）を照合"| discover
@@ -68,6 +78,8 @@ flowchart LR
 |---|---|---|---|
 | `frameworks.json` | 人（手で編集） | カテゴリごとの見出し（`title`）・Gist のファイル名（`filename`）・検知の設定（`discover_topics` / `discover_phrases` / `discover_awesome`）と、対象リポジトリ（`repo`・表示名 `name`・言語の上書き `language`） | すべての workflow の入力 |
 | `.state/stars.json` | `ranking.py` | `{日付: {リポジトリ: ★数}}`（掲載中のフレームワーク） | 今後、伸び幅などを表示するときの過去データ |
+| `rpg_world.json` | 人（手で編集） | テキスト RPG の世界（エリア・敵・ボス・店・イベントの起こりやすさ・歩数の決まり） | `rpg.py` の入力 |
+| `.state/rpg.json` | `rpg.py` | 勇者の状態（位置・HP・レベル・装備など）、直近 30 日の日誌、周回の記録 | 翌日の続きと、Gist の表示 |
 | `.state/last-run` | Commit state ステップ | 最終実行日（JST） | 60 日無活動で scheduled workflow が止まるのを防ぐ（keepalive） |
 | Releases `data-YYYY-MM` の `daily-YYYY-MM-DD.parquet` | `collect.py`（collect-stars.yml が添付） | その日の★数・フォーク数・open issue 数・最終 push 日・アーカイブかどうか（★500 以上・1 年以内に push の全リポジトリ） | 伸び幅の分析（手元で DuckDB など） |
 | Releases `data-latest` の `repos.parquet` | 同上（毎日上書き） | リポジトリ情報のマスタ（名前・説明・topics・言語・作成日など、最新の状態） | 分析時の名前や言語・作成日での絞り込み |
@@ -81,6 +93,7 @@ master にブランチ保護を設定するとこのコミットが失敗する�
 保持期間:
 - 日ごとの★数（`stars.json`）は無制限に保持します（`scripts/history.py` の `KEEP_DAYS = None`）。
   同じ日に複数回実行した場合は、その日最初の値を残します。
+- `rpg.json` は毎日上書きします（日誌は直近 30 日分、周回の記録は無制限）。
 - `last-run` は毎回上書きします。
 - Releases の `daily-*.parquet` は削除も書き換えもしません（同じ日に再実行しても最初の分を残します）。`repos.parquet` は毎日上書きします。
 
@@ -91,17 +104,23 @@ sequenceDiagram
     autonumber
     participant WF as update-ranking.yml
     participant R as ranking.py
+    participant RP as rpg.py
     participant GH as GitHub API
     participant G as Pinned Gist
     participant S as .state/*
     participant M as master
 
     WF->>WF: Test（unittest）
-    Note over WF,R: Test が失敗したら ranking.py はスキップ
+    Note over WF,RP: Test が失敗したら ranking.py / rpg.py はスキップ
     WF->>R: 実行
     R->>GH: 各リポジトリの★数（REST /repos）
     R->>S: stars.json に今日の★数を追記
     R->>G: frontend / backend の★総数ランキングを更新（内容が同じならスキップ）
+    Note over WF,RP: rpg.py は ranking.py の成否に関係なく実行
+    WF->>RP: 実行
+    RP->>GH: 前日（JST）のコントリビューション数（GraphQL）
+    RP->>S: rpg.json を 1 日分進める（その日の分が処理済みなら進めない）
+    RP->>G: 勇者の冒険の Gist を更新
     Note over WF,M: Commit state は前のステップが失敗しても実行（!cancelled()）
     WF->>S: last-run を更新
     WF->>M: .state/* に変更があればコミットし、pull --rebase してから push
