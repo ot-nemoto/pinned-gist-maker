@@ -116,10 +116,10 @@ sequenceDiagram
     R->>GH: 各リポジトリの★数（REST /repos）
     R->>S: stars.json に今日の★数を追記
     R->>G: frontend / backend の★総数ランキングを更新（内容が同じならスキップ）
-    Note over WF,RP: rpg.py は ranking.py の成否に関係なく実行
+    Note over WF,RP: rpg.py は ranking.py の成否に関係なく実行（GIST_ID_RPG が未設定ならスキップ）
     WF->>RP: 実行
     RP->>GH: 前日（JST）のコントリビューション数（GraphQL）
-    RP->>S: rpg.json を 1 日分進める（その日の分が処理済みなら進めない）
+    RP->>S: rpg.json を 1 日分進める（処理済みなら進めない。実行されなかった日があればさかのぼって進める）
     RP->>G: 勇者の冒険の Gist を更新
     Note over WF,M: Commit state は前のステップが失敗しても実行（!cancelled()）
     WF->>S: last-run を更新

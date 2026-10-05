@@ -5,14 +5,16 @@
 （rpg_world.json の step_rule。0 なら休息日）。1 歩ごとに戦闘・宝箱・商人などのイベントが起き、
 エリアの最後のボスを倒すと次のエリアへ進む。魔王を倒すとクリアで、記録を残して最初からもう一度挑戦する。
 HP が 0 になったら、そのエリアの町に戻され、所持金が半分になる。
+workflow が動かなかった日やコントリビューション数を取れなかった日があれば、次の実行で
+最大 CATCH_UP_DAYS 日分までさかのぼって 1 日ずつ進める。
 
 状態は .state/rpg.json に保存し、workflow の最後のステップで master にコミットする。
 乱数は「日付＋周回数」を種にするので、同じ日に何度実行しても結果は同じ（その日の分が処理済みなら進めない）。
 
 環境変数:
-  GITHUB_TOKEN   コントリビューション数の取得に使う（取れなければ GIST_PAT で再試行する）
-  GIST_PAT       Gist の更新に使う
-  GIST_ID_RPG    書き込む Gist の ID（未設定なら表示だけ）
+  GIST_PAT       Gist の更新とコントリビューション数の取得に使う
+  GITHUB_TOKEN   GIST_PAT でコントリビューション数を取れなかったときに使う
+  GIST_ID_RPG    書き込む Gist の ID（未設定なら Gist は更新しない。workflow ではステップごと実行しない）
   RPG_USER       コントリビューションを数える GitHub ユーザー（既定は GITHUB_REPOSITORY_OWNER）
 
 使い方:
@@ -25,6 +27,8 @@ import json
 import os
 import random
 import sys
+import time as time_module
+import urllib.error
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
@@ -35,6 +39,9 @@ WORLD_PATH = ranking.ROOT / "rpg_world.json"
 STATE_PATH = ranking.ROOT / ".state" / "rpg.json"
 FILENAME = "hero-adventure.txt"
 JOURNAL_DAYS = 30
+CATCH_UP_DAYS = 7  # 実行されなかった日をさかのぼって進める最大の日数
+# カードの「昨日」に優先して出す出来事（前ほど優先）
+HIGHLIGHTS = ("クリア", "力尽きた", "敗れた", "討ち取った", "レベルが上がった", "伝説", "買った")
 MAP_CELLS = 24
 GRAPHQL = "https://api.github.com/graphql"
 CONTRIB_QUERY = """query($login: String!, $from: DateTime!, $to: DateTime!) {
@@ -73,11 +80,18 @@ def new_state(world: dict) -> dict:
 def load_state(world: dict, path: Path | None = None) -> dict:
     path = path or STATE_PATH
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        loaded = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return new_state(world)
     except json.JSONDecodeError as e:
         raise SystemExit(f"{path} が JSON として読めません（マージ衝突などを確認してください）: {e}")
+    # 項目を足したり rpg_world.json を縮めたりしても動くように、足りない項目を補い、世界の外に出ないようにする
+    state = {**new_state(world), **loaded}
+    state["hero"] = {**new_hero(world), **state["hero"]}
+    state["pos"] = min(state["pos"], world["total"] - 1)
+    names = {a["name"] for a in world["areas"]}
+    state["boss_cleared"] = [n for n in state["boss_cleared"] if n in names]
+    return state
 
 
 def save_state(state: dict, path: Path | None = None) -> None:
@@ -162,8 +176,8 @@ class Day:
         self.state["pos"] = area["start"]
         self.state["deaths"] += 1
         self.hero["gold"] //= 2
-        self.hero["hp"] = self.hero["max_hp"]
         self.log(f"力尽きた… {area['town']}に運ばれた（所持金が半分に）")
+        self.town(area)  # 町で回復し、残ったお金で買い物をする
 
     # マスのイベント ---------------------------------------------------------------------
     def town(self, area: dict) -> None:
@@ -261,8 +275,8 @@ class Day:
 
 
 def advance(world: dict, state: dict, today: date, contributions: int) -> bool:
-    """today の分を進める。処理済みなら何もせず False。"""
-    if state["last_date"] == today.isoformat():
+    """today の分を進める。処理済み（last_date 以前の日付）なら何もせず False。"""
+    if state["last_date"] and today.isoformat() <= state["last_date"]:
         return False
     rng = random.Random(f"{today.isoformat()}-{state['lap']}")
     state["day"] += 1
@@ -270,6 +284,8 @@ def advance(world: dict, state: dict, today: date, contributions: int) -> bool:
     state["last_date"] = today.isoformat()
     day = Day(world, state, rng)
     steps = steps_for(world, contributions)
+    if state["lap_day"] == 1 and state["pos"] == 0:  # 旅立ちの日は最初の町で支度する
+        day.town(world["areas"][0])
     if steps == 0:
         hero = state["hero"]
         hero["hp"] = min(hero["max_hp"], hero["hp"] + int(hero["max_hp"] * world["rest_heal_rate"]))
@@ -323,11 +339,18 @@ def teaser(world: dict, state: dict) -> str:
     return rng.choice(area["scenery"]) + "…"
 
 
+def highlights(events: list[str], n: int = 2) -> list[str]:
+    """カードに出す出来事を n 個選ぶ（力尽きた・クリアなどを優先し、起きた順に並べる）。"""
+    def rank(i: int) -> int:
+        return next((r for r, key in enumerate(HIGHLIGHTS) if key in events[i]), len(HIGHLIGHTS))
+    return [events[i] for i in sorted(sorted(range(len(events)), key=rank)[:n])]
+
+
 def build_text(world: dict, state: dict) -> str:
     hero, area = state["hero"], area_at(world, state["pos"])
     hp_bar = ranking.bar(hero["hp"], hero["max_hp"], 10).replace(" ", "░")
     last = state["last"] or {"contributions": 0, "events": ["冒険の始まり"]}
-    summary = "、".join(last["events"][:2]) if last["events"] else "何も起きなかった"
+    summary = "、".join(highlights(last["events"])) if last["events"] else "何も起きなかった"
     lines = [
         f"⚔️ Day {state['day']}  {world['title']} Lv.{hero['level']} ── {area['emoji']} {area['name']}",
         map_line(world, state),
@@ -347,7 +370,7 @@ def build_text(world: dict, state: dict) -> str:
         f"倒した敵: {state['kills']}  力尽きた回数: {state['deaths']}",
         f"倒したボス: {'、'.join(state['boss_cleared']) or 'まだいない'}",
         "",
-        "── 冒険の記録（前日のコントリビューション数で進む歩数が決まる）──",
+        "── 冒険の記録（日付は進めた日、カッコ内はその前日のコントリビューション数）──",
     ]
     detail += [f"{j['date']} ({j['contributions']}) {j['text']}" for j in state["journal"]]
     if state["records"]:
@@ -358,6 +381,21 @@ def build_text(world: dict, state: dict) -> str:
 
 
 # ---- コントリビューション数 -----------------------------------------------------------
+def post_graphql(token: str, body: dict) -> dict:
+    """5xx・429・通信エラーは RETRY_WAITS に従って再試行する（401/403 などはすぐに諦める）。"""
+    for wait in (*ranking.RETRY_WAITS, None):
+        try:
+            return ranking.api("POST", GRAPHQL, token, body)
+        except urllib.error.HTTPError as e:
+            if wait is None or not (e.code >= 500 or e.code == 429):
+                raise
+        except OSError:
+            if wait is None:
+                raise
+        time_module.sleep(wait)
+    raise AssertionError("unreachable")
+
+
 def fetch_contributions(login: str, day: date, tokens: list[str]) -> int:
     """day（JST の 1 日）のコントリビューション数。どのトークンでも取れなければ FetchError。"""
     start = datetime.combine(day, time.min, tzinfo=ranking.JST)
@@ -366,7 +404,7 @@ def fetch_contributions(login: str, day: date, tokens: list[str]) -> int:
     errors = []
     for token in tokens:
         try:
-            res = ranking.api("POST", GRAPHQL, token, {"query": CONTRIB_QUERY, "variables": variables})
+            res = post_graphql(token, {"query": CONTRIB_QUERY, "variables": variables})
         except Exception as e:  # noqa: BLE001  トークンごとの失敗は次のトークンで再試行する
             errors.append(str(e))
             continue
@@ -376,6 +414,14 @@ def fetch_contributions(login: str, day: date, tokens: list[str]) -> int:
             continue
         return sum(user["contributionsCollection"].values())
     raise ranking.FetchError(f"コントリビューション数を取得できません: {'; '.join(errors) or 'トークンがありません'}")
+
+
+def pending_days(state: dict, today: date) -> list[date]:
+    """進める日の一覧（古い順）。last_date の翌日から today まで、最大 CATCH_UP_DAYS 日。"""
+    if state["last_date"] is None:
+        return [today]
+    first = max(date.fromisoformat(state["last_date"]) + timedelta(days=1), today - timedelta(days=CATCH_UP_DAYS - 1))
+    return [first + timedelta(days=i) for i in range((today - first).days + 1)]
 
 
 def main() -> int:
@@ -389,24 +435,28 @@ def main() -> int:
     state = load_state(world)
     today = date.fromisoformat(a.date) if a.date else datetime.now(timezone.utc).astimezone(ranking.JST).date()
 
-    if state["last_date"] == today.isoformat():
+    days = pending_days(state, today)
+    advanced = 0
+    if not days:
         print(f"{today} の分は処理済みのため進めません（表示だけ更新します）")
+    elif a.contributions is not None:
+        advanced += advance(world, state, today, a.contributions)
     else:
-        if a.contributions is not None:
-            contributions = a.contributions
-        else:
-            login = os.environ.get("RPG_USER") or os.environ.get("GITHUB_REPOSITORY_OWNER")
-            if not login:
-                raise SystemExit("RPG_USER か GITHUB_REPOSITORY_OWNER を環境変数で指定してください")
-            tokens = [t for t in (os.environ.get("GITHUB_TOKEN"), os.environ.get("GIST_PAT")) if t]
+        login = os.environ.get("RPG_USER") or os.environ.get("GITHUB_REPOSITORY_OWNER")
+        if not login:
+            raise SystemExit("RPG_USER か GITHUB_REPOSITORY_OWNER を環境変数で指定してください")
+        tokens = [t for t in (os.environ.get("GIST_PAT"), os.environ.get("GITHUB_TOKEN")) if t]
+        for day in days:  # 実行されなかった日があれば、古い日から 1 日ずつ進める
             try:
-                contributions = fetch_contributions(login, today - timedelta(days=1), tokens)
+                contributions = fetch_contributions(login, day - timedelta(days=1), tokens)
             except ranking.FetchError as e:
-                ranking.warn(f"{e}。今日は冒険を進めません（明日の実行で続きから進みます）")
-                return 0
-        advance(world, state, today, contributions)
-        if not a.dry_run:
-            save_state(state)
+                ranking.warn(f"{e}。{day} から先は進めません（次の実行で、この日からさかのぼって進めます）")
+                break
+            advanced += advance(world, state, day, contributions)
+    if days and not advanced:
+        return 0  # 1 日も進められなかった（Gist もそのまま）
+    if advanced and not a.dry_run:
+        save_state(state)
 
     content = build_text(world, state)
     print(content)

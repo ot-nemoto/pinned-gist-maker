@@ -44,9 +44,10 @@ jobs:
         run: python scripts/ranking.py
 
       # テキスト RPG を 1 日分進める（前日のコントリビューション数で進む歩数が決まる）。状態は .state/rpg.json。
-      # Repository variable GIST_ID_RPG が未設定なら表示だけ。コントリビューション数を取得できない日は進めない。
+      # Repository variable GIST_ID_RPG が未設定ならステップごと実行しない（状態も作らない）。
+      # コントリビューション数を取得できなかった日は、次の実行でさかのぼって進める。
       - name: Advance RPG
-        if: ${{ !cancelled() && steps.test.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.test.outcome == 'success' && vars.GIST_ID_RPG != '' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GIST_PAT: ${{ secrets.GIST_PAT }}

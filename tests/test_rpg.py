@@ -50,7 +50,18 @@ class AdvanceTest(unittest.TestCase):
         rpg.advance(WORLD, state, DAY, 0)
         self.assertEqual(state["pos"], 0)
         self.assertGreater(state["hero"]["hp"], 1)
-        self.assertIn(state["last"]["events"][0], WORLD["rest"])
+        self.assertIn(state["last"]["events"][-1], WORLD["rest"])
+
+    def test_first_day_shops_in_the_first_town(self):
+        state = rpg.new_state(WORLD)
+        rpg.advance(WORLD, state, DAY, 0)
+        self.assertEqual(state["hero"]["weapon"]["name"], "銅の剣")
+        self.assertIn("はじまりの村", state["last"]["events"][0])
+
+    def test_past_date_is_not_processed(self):
+        state = play(3)
+        self.assertFalse(rpg.advance(WORLD, state, DAY, 3))
+        self.assertEqual(state["day"], 3)
 
     def test_moves_by_steps(self):
         state = rpg.new_state(WORLD)
@@ -71,11 +82,18 @@ class AdvanceTest(unittest.TestCase):
     def test_fall_halves_gold(self):
         state = rpg.new_state(WORLD)
         state["pos"] = WORLD["areas"][1]["start"] + 5
-        state["hero"]["gold"] = 101
+        state["hero"].update(gold=101, potions=2, hp=0)
         day = rpg.Day(WORLD, state, random.Random(0))
         day.fall()
         self.assertEqual((state["pos"], state["hero"]["gold"]), (WORLD["areas"][1]["start"], 50))
         self.assertEqual(state["hero"]["hp"], state["hero"]["max_hp"])
+
+    def test_fall_shops_in_the_town(self):
+        state = rpg.new_state(WORLD)
+        state["pos"] = WORLD["areas"][1]["start"] + 5
+        state["hero"].update(gold=400, potions=2, hp=0)
+        rpg.Day(WORLD, state, random.Random(0)).fall()
+        self.assertEqual(state["hero"]["weapon"]["name"], "鉄の剣")  # 半分の 200G で買える
 
     def test_town_heals_and_buys_better_gear(self):
         state = rpg.new_state(WORLD)
@@ -135,6 +153,11 @@ class DisplayTest(unittest.TestCase):
             self.assertEqual(lines[5], "")  # カードの 5 行のあとに詳細が続く
             self.assertTrue(lines[0].startswith("⚔️ Day"))
 
+    def test_highlights_prefer_important_events(self):
+        events = ["フクロウがこちらを見ている", "トレントに敗れた", "力尽きた… 森の隠れ里に運ばれた", "森の隠れ里で休んだ"]
+        self.assertEqual(rpg.highlights(events), events[1:3])
+        self.assertEqual(rpg.highlights(["a", "b", "c"]), ["a", "b"])
+
     def test_fit(self):
         self.assertEqual(rpg.fit("あいう", 6), "あいう")
         self.assertEqual(rpg.fit("あいうえお", 6), "あい…")
@@ -158,6 +181,27 @@ class StateTest(unittest.TestCase):
                 rpg.load_state(WORLD, path)
         self.assertEqual(rpg.load_state(WORLD, Path("/nonexistent/rpg.json")), rpg.new_state(WORLD))
 
+    def test_load_fills_missing_keys_and_clamps_to_the_world(self):
+        state = play(3)
+        del state["kills"], state["hero"]["potions"]
+        state.update(pos=WORLD["total"] + 5, boss_cleared=["草原", "消えたエリア"])
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "rpg.json"
+            rpg.save_state(state, path)
+            loaded = rpg.load_state(WORLD, path)
+        self.assertEqual((loaded["kills"], loaded["hero"]["potions"]), (0, WORLD["hero"]["potions"]))
+        self.assertEqual((loaded["pos"], loaded["boss_cleared"]), (WORLD["total"] - 1, ["草原"]))
+
+    def test_pending_days(self):
+        state = rpg.new_state(WORLD)
+        self.assertEqual(rpg.pending_days(state, DAY), [DAY])
+        state["last_date"] = (DAY - timedelta(days=3)).isoformat()
+        self.assertEqual(rpg.pending_days(state, DAY), [DAY - timedelta(days=2), DAY - timedelta(days=1), DAY])
+        state["last_date"] = (DAY - timedelta(days=30)).isoformat()
+        self.assertEqual(len(rpg.pending_days(state, DAY)), rpg.CATCH_UP_DAYS)
+        state["last_date"] = DAY.isoformat()
+        self.assertEqual(rpg.pending_days(state, DAY), [])
+
 
 class ContributionsTest(unittest.TestCase):
     def test_sums_contributions_and_falls_back_to_next_token(self):
@@ -171,10 +215,17 @@ class ContributionsTest(unittest.TestCase):
         self.assertEqual(body["variables"]["from"], "2026-10-06T00:00:00+09:00")  # JST の 1 日
         self.assertEqual(body["variables"]["to"], "2026-10-06T23:59:59+09:00")
 
+    def test_retries_server_errors(self):
+        ok = {"data": {"user": {"contributionsCollection": {"totalCommitContributions": 2}}}}
+        err = rpg.urllib.error.HTTPError("u", 502, "bad", {}, None)
+        with mock.patch.object(ranking, "api", side_effect=[err, ok]), mock.patch.object(rpg.time_module, "sleep"):
+            self.assertEqual(rpg.fetch_contributions("me", DAY, ["t1"]), 2)
+
     def test_all_tokens_fail(self):
-        with mock.patch.object(ranking, "api", side_effect=OSError("down")), \
-             self.assertRaises(ranking.FetchError):
+        with mock.patch.object(ranking, "api", side_effect=OSError("down")) as api, \
+             mock.patch.object(rpg.time_module, "sleep"), self.assertRaises(ranking.FetchError):
             rpg.fetch_contributions("me", DAY, ["t1"])
+        self.assertEqual(api.call_count, len(ranking.RETRY_WAITS) + 1)  # 通信エラーは再試行してから諦める
         with self.assertRaises(ranking.FetchError):
             rpg.fetch_contributions("me", DAY, [])
 
@@ -201,6 +252,25 @@ class MainTest(unittest.TestCase):
         saved, gist = self.run_main(state, ["--date", DAY.isoformat()], {"GIST_ID_RPG": "g", "GIST_PAT": "p"})
         self.assertIsNone(saved)
         gist.assert_called_once()
+
+    def test_catches_up_missed_days(self):
+        state = play(1)  # last_date = DAY
+        today = DAY + timedelta(days=3)
+        with mock.patch.object(rpg, "fetch_contributions", return_value=3) as fetch:
+            saved, gist = self.run_main(state, ["--date", today.isoformat()],
+                                        {"RPG_USER": "me", "GIST_ID_RPG": "g", "GIST_PAT": "p"})
+        self.assertEqual([c.args[1] for c in fetch.call_args_list],
+                         [DAY, DAY + timedelta(days=1), DAY + timedelta(days=2)])  # 各日の前日の分
+        self.assertEqual((saved["day"], saved["last_date"]), (4, today.isoformat()))
+        gist.assert_called_once()
+
+    def test_stops_at_the_first_failed_day(self):
+        state = play(1)
+        with mock.patch.object(rpg, "fetch_contributions", side_effect=[3, ranking.FetchError("x")]), \
+             mock.patch.object(ranking, "warn"):
+            saved, _ = self.run_main(state, ["--date", (DAY + timedelta(days=3)).isoformat()],
+                                     {"RPG_USER": "me", "GIST_ID_RPG": "g", "GIST_PAT": "p"})
+        self.assertEqual(saved["last_date"], (DAY + timedelta(days=1)).isoformat())  # 失敗した日から次回やり直す
 
     def test_fetch_failure_skips_the_day(self):
         with mock.patch.object(rpg, "fetch_contributions", side_effect=ranking.FetchError("x")), \
