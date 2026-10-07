@@ -298,6 +298,19 @@ class MainTest(unittest.TestCase):
             self.run_main(rpg.new_state(WORLD), ["--create-gist"], {"GIST_PAT": "p", "GIST_ID_RPG": "g"})
         create.assert_not_called()
 
+    def test_create_gist_needs_pat_and_rejects_dry_run(self):
+        with mock.patch.object(common, "create_gist") as create:
+            with self.assertRaises(SystemExit):
+                self.run_main(rpg.new_state(WORLD), ["--create-gist"], {"GIST_ID_RPG": ""})  # 未設定の変数は空文字
+            with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+                self.run_main(rpg.new_state(WORLD), ["--create-gist", "--dry-run"], {"GIST_PAT": "p"})
+        create.assert_not_called()
+
+    def test_create_gist_when_variable_is_empty(self):
+        with mock.patch.object(common, "create_gist", return_value={"id": "abc", "html_url": "u"}) as create:
+            self.run_main(rpg.new_state(WORLD), ["--create-gist"], {"GIST_PAT": "p", "GIST_ID_RPG": ""})
+        create.assert_called_once()
+
     def test_dry_run_writes_nothing(self):
         saved, gist = self.run_main(rpg.new_state(WORLD), ["--dry-run", "--contributions", "1"])
         self.assertIsNone(saved)

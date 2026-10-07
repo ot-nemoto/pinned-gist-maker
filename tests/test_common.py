@@ -46,6 +46,15 @@ class UpdateGistTest(unittest.TestCase):
         self.assertEqual(api.call_args.args[3],
                          {"public": True, "description": "desc", "files": {"a.txt": {"content": "body"}}})
 
+    def test_create_gist_error_exits_with_hint(self):
+        err = common.urllib.error.HTTPError("u", 401, "bad", {}, io.BytesIO(b"Bad credentials"))
+        with mock.patch.object(common, "api", side_effect=err), self.assertRaises(SystemExit) as cm:
+            common.create_gist("t", "a.txt", "body", "desc")
+        self.assertIn("gist スコープ", str(cm.exception))
+        with mock.patch.object(common, "api", side_effect=common.urllib.error.URLError("down")), \
+             self.assertRaises(SystemExit):
+            common.create_gist("t", "a.txt", "body", "desc")
+
 
 class ApiTest(unittest.TestCase):
     def test_sends_token_and_body(self):

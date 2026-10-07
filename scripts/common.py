@@ -58,8 +58,10 @@ def create_gist(token: str, filename: str, content: str, description: str) -> di
     try:
         return api("POST", "https://api.github.com/gists", token, body)
     except urllib.error.HTTPError as e:
-        hint = "（Classic PAT の gist スコープを確認してください）" if e.code in (401, 403, 404) else ""
+        hint = "（Classic PAT の gist スコープと期限を確認してください）" if e.code in (401, 403, 404) else ""
         raise SystemExit(f"Gist API エラー {e.code}{hint}: {e.read().decode(errors='replace')}")
+    except urllib.error.URLError as e:  # POST は冪等でないので再試行しない
+        raise SystemExit(f"Gist API に接続できません: {e.reason}")
 
 
 def update_gist(gist_id: str, token: str, filename: str, content: str) -> None:
@@ -79,6 +81,6 @@ def update_gist(gist_id: str, token: str, filename: str, content: str) -> None:
             patch = {filename: {"content": content}}
         api("PATCH", f"https://api.github.com/gists/{gist_id}", token, {"files": patch})
     except urllib.error.HTTPError as e:
-        hint = "（Classic PAT の gist スコープと Gist ID を確認してください）" if e.code in (403, 404) else ""
+        hint = "（Classic PAT の gist スコープ・期限と Gist ID を確認してください）" if e.code in (401, 403, 404) else ""
         raise SystemExit(f"Gist API エラー {e.code}{hint}: {e.read().decode(errors='replace')}")
     print(f"Gist を更新しました: {filename}")

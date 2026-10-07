@@ -12,7 +12,7 @@ workflow が動かなかった日やコントリビューション数を取れ�
 乱数は「日付＋周回数」を種にするので、同じ日に何度実行しても結果は同じ（その日の分が処理済みなら進めない）。
 
 環境変数:
-  GIST_PAT       Gist の更新とコントリビューション数の取得に使う
+  GIST_PAT       Gist の作成（--create-gist）・更新と、コントリビューション数の取得に使う
   GITHUB_TOKEN   GIST_PAT でコントリビューション数を取れなかったときに使う
   GIST_ID_RPG    書き込む Gist の ID（未設定なら Gist は更新しない。workflow ではステップごと実行しない）
   RPG_USER       コントリビューションを数える GitHub ユーザー（既定は GITHUB_REPOSITORY_OWNER）
@@ -435,12 +435,12 @@ def create_gist(world: dict) -> int:
         raise SystemExit("GIST_PAT を環境変数で指定してください")
     gist = common.create_gist(token, FILENAME, build_text(world, new_state(world)), GIST_DESCRIPTION)
     message = (f"Gist を作りました: {gist['html_url']}\n\n"
-               f"Repository variable `GIST_ID_RPG` に `{gist['id']}` を登録してから、もう一度実行してください。\n")
+               f"Repository variable `GIST_ID_RPG` に `{gist['id']}` を登録してから、もう一度実行してください。")
     print(message)
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as f:
-            f.write("## 勇者の冒険の Gist\n\n" + message)
+            f.write(f"## 勇者の冒険の Gist\n\n{message}\n")
     return 0
 
 
@@ -451,6 +451,8 @@ def main() -> int:
     ap.add_argument("--contributions", type=int, help="前日のコントリビューション数を指定する（取得しない）")
     ap.add_argument("--create-gist", action="store_true", help="冒険を始めるための Gist を作るだけ（冒険は進めない）")
     a = ap.parse_args()
+    if a.create_gist and (a.dry_run or a.date or a.contributions is not None):
+        ap.error("--create-gist は --dry-run / --date / --contributions と一緒に指定できません")
 
     world = load_world()
     if a.create_gist:
