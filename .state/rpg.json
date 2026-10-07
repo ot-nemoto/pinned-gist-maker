@@ -1,8 +1,8 @@
 {
-  "day": 1,
+  "day": 2,
   "lap": 1,
-  "lap_day": 1,
-  "pos": 3,
+  "lap_day": 2,
+  "pos": 6,
   "boss_cleared": [],
   "hero": {
     "level": 2,
@@ -11,8 +11,8 @@
     "hp": 40,
     "base_atk": 8,
     "base_def": 3,
-    "gold": 23,
-    "potions": 1,
+    "gold": 6,
+    "potions": 3,
     "weapon": {
       "name": "銅の剣",
       "power": 3
@@ -21,20 +21,23 @@
   },
   "kills": 2,
   "deaths": 0,
-  "last_date": "2026-10-06",
+  "last_date": "2026-10-07",
   "last": {
-    "date": "2026-10-06",
-    "contributions": 13,
+    "date": "2026-10-07",
+    "contributions": 23,
     "steps": 3,
     "events": [
-      "はじまりの村で休んだ、銅の剣を買った",
-      "ゴブリンを倒した！ (+7EXP)",
-      "レベルが上がった！ Lv.2",
-      "おおねずみを倒した！ (+5EXP)",
-      "道端に小さな花が咲いている"
+      "宝箱から23Gを見つけた",
+      "旅の商人に出会った、回復薬を2個買った",
+      "そよ風が草原を渡っていく"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-07",
+      "contributions": 23,
+      "text": "宝箱から23Gを見つけた / 旅の商人に出会った、回復薬を2個買った / そよ風が草原を渡っていく"
+    },
     {
       "date": "2026-10-06",
       "contributions": 13,
