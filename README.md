@@ -70,7 +70,8 @@ Gist を開くと、ステータス・装備、直近 30 日の冒険の記録�
 - 平均的なペース（コントリビューションが 0 の日が 3 割程度）で、1 周 90 日前後になるように調整している（`tests/test_rpg.py` でまとめて試している）
 - 乱数は「日付＋周回数」を種にするので、同じ日に何度実行しても結果は同じ。その日の分を処理済みなら進めない（Gist の表示だけ更新する）
 - workflow が動かなかった日や、コントリビューション数を取得できなかった日（警告を出す）は、次の実行でさかのぼって 1 日ずつ進める（最大 7 日分）
-- Repository variable `GIST_ID_RPG` を登録するまでは動かない（RPG を使わないなら何もしなくてよい）
+- Repository variable `GIST_ID_RPG` を登録するまでは動かない（RPG を使わないなら何もしなくてよい）。
+  始めるための Gist は、workflow の手動実行で `create_gist` を指定すると作れる（[docs/SETUP.md](docs/SETUP.md)）
 
 | ファイル | 役割 |
 |---|---|
@@ -81,6 +82,7 @@ Gist を開くと、ステータス・装備、直近 30 日の冒険の記録�
 
 ```sh
 python scripts/rpg.py --dry-run --contributions 3   # 記録せずに今日の分を試す（前日のコントリビューション数を指定）
+GIST_PAT=xxx python scripts/rpg.py --create-gist    # 冒険を始めるための Gist を作る（Actions の手動実行の create_gist でも作れる）
 ```
 
 `rpg_world.json` を変えたら、`tests/test_rpg.py` のバランスのテスト（1 周 70〜120 日に収まるか）が通るか確かめてください。

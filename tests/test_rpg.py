@@ -280,6 +280,24 @@ class MainTest(unittest.TestCase):
         self.assertIsNone(saved)
         gist.assert_not_called()
 
+    def test_create_gist_writes_summary(self):
+        with tempfile.TemporaryDirectory() as d:
+            summary = Path(d) / "summary.md"
+            with mock.patch.object(common, "create_gist", return_value={"id": "abc", "html_url": "https://g/abc"}) as create:
+                saved, gist = self.run_main(rpg.new_state(WORLD), ["--create-gist"],
+                                            {"GIST_PAT": "p", "GITHUB_STEP_SUMMARY": str(summary)})
+            self.assertIn("`abc`", summary.read_text(encoding="utf-8"))
+        token, filename, content, _ = create.call_args.args
+        self.assertEqual((token, filename), ("p", rpg.FILENAME))
+        self.assertTrue(content.startswith("⚔️ Day 0"))
+        self.assertIsNone(saved)  # 冒険は進めない
+        gist.assert_not_called()
+
+    def test_create_gist_refuses_when_already_set(self):
+        with mock.patch.object(common, "create_gist") as create, self.assertRaises(SystemExit):
+            self.run_main(rpg.new_state(WORLD), ["--create-gist"], {"GIST_PAT": "p", "GIST_ID_RPG": "g"})
+        create.assert_not_called()
+
     def test_dry_run_writes_nothing(self):
         saved, gist = self.run_main(rpg.new_state(WORLD), ["--dry-run", "--contributions", "1"])
         self.assertIsNone(saved)

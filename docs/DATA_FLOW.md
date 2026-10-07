@@ -60,6 +60,7 @@ sequenceDiagram
     participant M as master
 
     WF->>WF: Test（unittest）
+    Note over WF,RP: 手動実行で create_gist を指定したときは、rpg.py --create-gist で Gist を作るだけ（以下は行わない）
     Note over WF,RP: Test が失敗したら、または GIST_ID_RPG が未設定なら rpg.py はスキップ
     WF->>RP: 実行
     RP->>GH: 前日（JST）のコントリビューション数（GraphQL）

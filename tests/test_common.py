@@ -39,6 +39,13 @@ class UpdateGistTest(unittest.TestCase):
             common.update_gist("g", "t", "rank.txt", "new")
         self.assertIn("gist スコープ", str(cm.exception))
 
+    def test_create_gist_is_public_with_one_file(self):
+        with mock.patch.object(common, "api", return_value={"id": "abc"}) as api:
+            self.assertEqual(common.create_gist("t", "a.txt", "body", "desc")["id"], "abc")
+        self.assertEqual(api.call_args.args[:3], ("POST", "https://api.github.com/gists", "t"))
+        self.assertEqual(api.call_args.args[3],
+                         {"public": True, "description": "desc", "files": {"a.txt": {"content": "body"}}})
+
 
 class ApiTest(unittest.TestCase):
     def test_sends_token_and_body(self):

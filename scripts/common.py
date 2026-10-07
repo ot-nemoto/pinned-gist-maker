@@ -52,6 +52,16 @@ def bar(value: int, top: int, bar_w: int) -> str:
     return "█" * n + " " * (bar_w - n)
 
 
+def create_gist(token: str, filename: str, content: str, description: str) -> dict:
+    """public Gist を 1 ファイルで作り、API のレスポンス（id・html_url など）を返す。"""
+    body = {"public": True, "description": description, "files": {filename: {"content": content}}}
+    try:
+        return api("POST", "https://api.github.com/gists", token, body)
+    except urllib.error.HTTPError as e:
+        hint = "（Classic PAT の gist スコープを確認してください）" if e.code in (401, 403, 404) else ""
+        raise SystemExit(f"Gist API エラー {e.code}{hint}: {e.read().decode(errors='replace')}")
+
+
 def update_gist(gist_id: str, token: str, filename: str, content: str) -> None:
     try:
         files = api("GET", f"https://api.github.com/gists/{gist_id}", token).get("files", {})
