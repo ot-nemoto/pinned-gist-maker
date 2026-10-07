@@ -12,13 +12,14 @@ workflow が動かなかった日やコントリビューション数を取れ�
 乱数は「日付＋周回数」を種にするので、同じ日に何度実行しても結果は同じ（その日の分が処理済みなら進めない）。
 
 環境変数:
-  GIST_PAT       Gist の更新とコントリビューション数の取得に使う
+  GIST_PAT       Gist の作成（--create-gist）・更新と、コントリビューション数の取得に使う
   GITHUB_TOKEN   GIST_PAT でコントリビューション数を取れなかったときに使う
   GIST_ID_RPG    書き込む Gist の ID（未設定なら Gist は更新しない。workflow ではステップごと実行しない）
   RPG_USER       コントリビューションを数える GitHub ユーザー（既定は GITHUB_REPOSITORY_OWNER）
 
 使い方:
   python scripts/rpg.py --dry-run --contributions 3   # 記録せずに 1 日分を試す
+  GIST_PAT=xxx python scripts/rpg.py --create-gist    # 冒険を始めるための Gist を作る（ID を GIST_ID_RPG に登録する）
 """
 from __future__ import annotations
 
@@ -38,6 +39,7 @@ import common  # noqa: E402
 WORLD_PATH = common.ROOT / "rpg_world.json"
 STATE_PATH = common.ROOT / ".state" / "rpg.json"
 FILENAME = "hero-adventure.txt"
+GIST_DESCRIPTION = "勇者の冒険 — コミットするほど勇者が進むテキスト RPG"
 JOURNAL_DAYS = 30
 CATCH_UP_DAYS = 7  # 実行されなかった日をさかのぼって進める最大の日数
 # カードの「昨日」に優先して出す出来事（前ほど優先）
@@ -424,14 +426,37 @@ def pending_days(state: dict, today: date) -> list[date]:
     return [first + timedelta(days=i) for i in range((today - first).days + 1)]
 
 
+def create_gist(world: dict) -> int:
+    """冒険前の勇者のカードを中身にした public Gist を作り、ID を表示する（Actions ではジョブのサマリーにも出す）。"""
+    if os.environ.get("GIST_ID_RPG"):
+        raise SystemExit(f"GIST_ID_RPG が設定済み（{os.environ['GIST_ID_RPG']}）のため、Gist は作りません")
+    token = os.environ.get("GIST_PAT")
+    if not token:
+        raise SystemExit("GIST_PAT を環境変数で指定してください")
+    gist = common.create_gist(token, FILENAME, build_text(world, new_state(world)), GIST_DESCRIPTION)
+    message = (f"Gist を作りました: {gist['html_url']}\n\n"
+               f"Repository variable `GIST_ID_RPG` に `{gist['id']}` を登録してから、もう一度実行してください。")
+    print(message)
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write(f"## 勇者の冒険の Gist\n\n{message}\n")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="状態を保存せず、Gist も更新しない")
     ap.add_argument("--date", help="進める日付（既定は今日の JST）")
     ap.add_argument("--contributions", type=int, help="前日のコントリビューション数を指定する（取得しない）")
+    ap.add_argument("--create-gist", action="store_true", help="冒険を始めるための Gist を作るだけ（冒険は進めない）")
     a = ap.parse_args()
+    if a.create_gist and (a.dry_run or a.date or a.contributions is not None):
+        ap.error("--create-gist は --dry-run / --date / --contributions と一緒に指定できません")
 
     world = load_world()
+    if a.create_gist:
+        return create_gist(world)
     state = load_state(world)
     today = date.fromisoformat(a.date) if a.date else datetime.now(timezone.utc).astimezone(common.JST).date()
 
