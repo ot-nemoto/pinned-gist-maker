@@ -1,17 +1,17 @@
 {
-  "day": 2,
+  "day": 3,
   "lap": 1,
-  "lap_day": 2,
-  "pos": 6,
+  "lap_day": 3,
+  "pos": 9,
   "boss_cleared": [],
   "hero": {
     "level": 2,
-    "exp": 6,
+    "exp": 13,
     "max_hp": 40,
-    "hp": 40,
+    "hp": 36,
     "base_atk": 8,
     "base_def": 3,
-    "gold": 6,
+    "gold": 35,
     "potions": 3,
     "weapon": {
       "name": "銅の剣",
@@ -19,20 +19,25 @@
     },
     "armor": null
   },
-  "kills": 2,
+  "kills": 3,
   "deaths": 0,
-  "last_date": "2026-10-07",
+  "last_date": "2026-10-08",
   "last": {
-    "date": "2026-10-07",
-    "contributions": 23,
+    "date": "2026-10-08",
+    "contributions": 35,
     "steps": 3,
     "events": [
-      "宝箱から23Gを見つけた",
-      "旅の商人に出会った、回復薬を2個買った",
-      "そよ風が草原を渡っていく"
+      "道端に小さな花が咲いている",
+      "ゴブリンを倒した！ (+7EXP)",
+      "宝箱から21Gを見つけた"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-08",
+      "contributions": 35,
+      "text": "道端に小さな花が咲いている / ゴブリンを倒した！ (+7EXP) / 宝箱から21Gを見つけた"
+    },
     {
       "date": "2026-10-07",
       "contributions": 23,
