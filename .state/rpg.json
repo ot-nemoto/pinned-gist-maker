@@ -1,17 +1,17 @@
 {
-  "day": 4,
+  "day": 5,
   "lap": 1,
-  "lap_day": 4,
-  "pos": 12,
+  "lap_day": 5,
+  "pos": 15,
   "boss_cleared": [],
   "hero": {
-    "level": 2,
-    "exp": 22,
-    "max_hp": 40,
-    "hp": 31,
-    "base_atk": 8,
-    "base_def": 3,
-    "gold": 44,
+    "level": 3,
+    "exp": 3,
+    "max_hp": 50,
+    "hp": 50,
+    "base_atk": 11,
+    "base_def": 4,
+    "gold": 61,
     "potions": 3,
     "weapon": {
       "name": "銅の剣",
@@ -19,20 +19,26 @@
     },
     "armor": null
   },
-  "kills": 5,
+  "kills": 6,
   "deaths": 0,
-  "last_date": "2026-10-09",
+  "last_date": "2026-10-10",
   "last": {
-    "date": "2026-10-09",
-    "contributions": 62,
+    "date": "2026-10-10",
+    "contributions": 35,
     "steps": 3,
     "events": [
+      "宝箱から12Gを見つけた",
+      "旅の商人に出会った",
       "おおねずみを倒した！ (+5EXP)",
-      "そよ風が草原を渡っていく",
-      "スライムを倒した！ (+4EXP)"
+      "レベルが上がった！ Lv.3"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-10",
+      "contributions": 35,
+      "text": "宝箱から12Gを見つけた / 旅の商人に出会った / おおねずみを倒した！ (+5EXP) / レベルが上がった！ Lv.3"
+    },
     {
       "date": "2026-10-09",
       "contributions": 62,
