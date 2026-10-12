@@ -1,38 +1,48 @@
 {
-  "day": 6,
+  "day": 7,
   "lap": 1,
-  "lap_day": 6,
-  "pos": 18,
-  "boss_cleared": [],
+  "lap_day": 7,
+  "pos": 21,
+  "boss_cleared": [
+    "草原"
+  ],
   "hero": {
     "level": 3,
-    "exp": 7,
+    "exp": 43,
     "max_hp": 50,
     "hp": 50,
     "base_atk": 11,
     "base_def": 4,
-    "gold": 65,
+    "gold": 5,
     "potions": 3,
     "weapon": {
       "name": "銅の剣",
       "power": 3
     },
-    "armor": null
+    "armor": {
+      "name": "鎖かたびら",
+      "power": 5
+    }
   },
-  "kills": 7,
+  "kills": 8,
   "deaths": 0,
-  "last_date": "2026-10-11",
+  "last_date": "2026-10-12",
   "last": {
-    "date": "2026-10-11",
-    "contributions": 63,
+    "date": "2026-10-12",
+    "contributions": 85,
     "steps": 3,
     "events": [
-      "そよ風が草原を渡っていく",
-      "遠くで羊が鳴いている",
-      "スライムを倒した！ (+4EXP)"
+      "キングスライムを討ち取った！！ (+36EXP)",
+      "森の隠れ里で休んだ、鎖かたびらを買った",
+      "同じ場所を回っている気がする…"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-12",
+      "contributions": 85,
+      "text": "キングスライムを討ち取った！！ (+36EXP) / 森の隠れ里で休んだ、鎖かたびらを買った / 同じ場所を回っている気がする…"
+    },
     {
       "date": "2026-10-11",
       "contributions": 63,
