@@ -1,19 +1,19 @@
 {
-  "day": 8,
+  "day": 9,
   "lap": 1,
-  "lap_day": 8,
-  "pos": 24,
+  "lap_day": 9,
+  "pos": 27,
   "boss_cleared": [
     "草原"
   ],
   "hero": {
-    "level": 3,
-    "exp": 43,
-    "max_hp": 50,
-    "hp": 50,
-    "base_atk": 11,
-    "base_def": 4,
-    "gold": 33,
+    "level": 4,
+    "exp": 11,
+    "max_hp": 60,
+    "hp": 54,
+    "base_atk": 14,
+    "base_def": 5,
+    "gold": 55,
     "potions": 3,
     "weapon": {
       "name": "銅の剣",
@@ -24,20 +24,26 @@
       "power": 5
     }
   },
-  "kills": 8,
+  "kills": 10,
   "deaths": 0,
-  "last_date": "2026-10-13",
+  "last_date": "2026-10-14",
   "last": {
-    "date": "2026-10-13",
-    "contributions": 164,
+    "date": "2026-10-14",
+    "contributions": 112,
     "steps": 3,
     "events": [
-      "同じ場所を回っている気がする…",
-      "同じ場所を回っている気がする…",
-      "宝箱から28Gを見つけた"
+      "トレントを倒した！ (+12EXP)",
+      "レベルが上がった！ Lv.4",
+      "木漏れ日が揺れている",
+      "ウルフを倒した！ (+10EXP)"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-14",
+      "contributions": 112,
+      "text": "トレントを倒した！ (+12EXP) / レベルが上がった！ Lv.4 / 木漏れ日が揺れている / ウルフを倒した！ (+10EXP)"
+    },
     {
       "date": "2026-10-13",
       "contributions": 164,
