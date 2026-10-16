@@ -1,8 +1,8 @@
 {
-  "day": 10,
+  "day": 11,
   "lap": 1,
-  "lap_day": 10,
-  "pos": 30,
+  "lap_day": 11,
+  "pos": 33,
   "boss_cleared": [
     "草原"
   ],
@@ -14,7 +14,7 @@
     "base_atk": 14,
     "base_def": 5,
     "gold": 80,
-    "potions": 3,
+    "potions": 4,
     "weapon": {
       "name": "銅の剣",
       "power": 3
@@ -26,18 +26,23 @@
   },
   "kills": 12,
   "deaths": 0,
-  "last_date": "2026-10-15",
+  "last_date": "2026-10-16",
   "last": {
-    "date": "2026-10-15",
-    "contributions": 96,
+    "date": "2026-10-16",
+    "contributions": 106,
     "steps": 3,
     "events": [
-      "ウルフを倒した！ (+10EXP)",
-      "木漏れ日が揺れている",
-      "ダークエルフを倒した！ (+14EXP)"
+      "フクロウがこちらを見ている",
+      "フクロウがこちらを見ている",
+      "宝箱から回復薬を見つけた"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-16",
+      "contributions": 106,
+      "text": "フクロウがこちらを見ている / フクロウがこちらを見ている / 宝箱から回復薬を見つけた"
+    },
     {
       "date": "2026-10-15",
       "contributions": 96,
