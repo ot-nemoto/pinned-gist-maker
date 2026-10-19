@@ -1,20 +1,21 @@
 {
-  "day": 13,
+  "day": 14,
   "lap": 1,
-  "lap_day": 13,
-  "pos": 39,
+  "lap_day": 14,
+  "pos": 42,
   "boss_cleared": [
-    "草原"
+    "草原",
+    "迷いの森"
   ],
   "hero": {
-    "level": 4,
-    "exp": 61,
-    "max_hp": 60,
-    "hp": 32,
-    "base_atk": 14,
-    "base_def": 5,
-    "gold": 135,
-    "potions": 4,
+    "level": 5,
+    "exp": 51,
+    "max_hp": 70,
+    "hp": 70,
+    "base_atk": 17,
+    "base_def": 6,
+    "gold": 270,
+    "potions": 3,
     "weapon": {
       "name": "銅の剣",
       "power": 3
@@ -24,20 +25,26 @@
       "power": 5
     }
   },
-  "kills": 14,
+  "kills": 16,
   "deaths": 0,
-  "last_date": "2026-10-18",
+  "last_date": "2026-10-19",
   "last": {
-    "date": "2026-10-18",
-    "contributions": 17,
+    "date": "2026-10-19",
+    "contributions": 36,
     "steps": 3,
     "events": [
-      "同じ場所を回っている気がする…",
       "ダークエルフを倒した！ (+14EXP)",
-      "宝箱から28Gを見つけた"
+      "森の番人を討ち取った！！ (+72EXP)",
+      "レベルが上がった！ Lv.5",
+      "鉱山の町で休んだ"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-19",
+      "contributions": 36,
+      "text": "ダークエルフを倒した！ (+14EXP) / 森の番人を討ち取った！！ (+72EXP) / レベルが上がった！ Lv.5 / 鉱山の町で休んだ"
+    },
     {
       "date": "2026-10-18",
       "contributions": 17,
