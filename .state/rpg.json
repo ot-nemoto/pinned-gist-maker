@@ -1,20 +1,20 @@
 {
-  "day": 14,
+  "day": 15,
   "lap": 1,
-  "lap_day": 14,
-  "pos": 42,
+  "lap_day": 15,
+  "pos": 45,
   "boss_cleared": [
     "草原",
     "迷いの森"
   ],
   "hero": {
     "level": 5,
-    "exp": 51,
+    "exp": 63,
     "max_hp": 70,
-    "hp": 70,
+    "hp": 62,
     "base_atk": 17,
     "base_def": 6,
-    "gold": 270,
+    "gold": 280,
     "potions": 3,
     "weapon": {
       "name": "銅の剣",
@@ -25,21 +25,25 @@
       "power": 5
     }
   },
-  "kills": 16,
+  "kills": 17,
   "deaths": 0,
-  "last_date": "2026-10-19",
+  "last_date": "2026-10-20",
   "last": {
-    "date": "2026-10-19",
-    "contributions": 36,
+    "date": "2026-10-20",
+    "contributions": 41,
     "steps": 3,
     "events": [
-      "ダークエルフを倒した！ (+14EXP)",
-      "森の番人を討ち取った！！ (+72EXP)",
-      "レベルが上がった！ Lv.5",
-      "鉱山の町で休んだ"
+      "旅の商人に出会った",
+      "水滴の音が響いている",
+      "コウモリを倒した！ (+12EXP)"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-20",
+      "contributions": 41,
+      "text": "旅の商人に出会った / 水滴の音が響いている / コウモリを倒した！ (+12EXP)"
+    },
     {
       "date": "2026-10-19",
       "contributions": 36,
