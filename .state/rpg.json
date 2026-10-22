@@ -1,21 +1,21 @@
 {
-  "day": 16,
+  "day": 17,
   "lap": 1,
-  "lap_day": 16,
-  "pos": 48,
+  "lap_day": 17,
+  "pos": 51,
   "boss_cleared": [
     "草原",
     "迷いの森"
   ],
   "hero": {
     "level": 5,
-    "exp": 104,
+    "exp": 121,
     "max_hp": 70,
-    "hp": 15,
-    "base_atk": 17,
+    "hp": 35,
+    "base_atk": 19,
     "base_def": 6,
-    "gold": 395,
-    "potions": 3,
+    "gold": 413,
+    "potions": 2,
     "weapon": {
       "name": "銅の剣",
       "power": 3
@@ -25,20 +25,25 @@
       "power": 5
     }
   },
-  "kills": 19,
+  "kills": 20,
   "deaths": 0,
-  "last_date": "2026-10-21",
+  "last_date": "2026-10-22",
   "last": {
-    "date": "2026-10-21",
-    "contributions": 23,
+    "date": "2026-10-22",
+    "contributions": 17,
     "steps": 3,
     "events": [
-      "宝箱から72Gを見つけた",
+      "旅の商人に出会った",
       "スケルトンを倒した！ (+17EXP)",
-      "ゴーレムを倒した！ (+24EXP)"
+      "古い祠で力を授かった（攻撃+2）"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-22",
+      "contributions": 17,
+      "text": "旅の商人に出会った / スケルトンを倒した！ (+17EXP) / 古い祠で力を授かった（攻撃+2）"
+    },
     {
       "date": "2026-10-21",
       "contributions": 23,
