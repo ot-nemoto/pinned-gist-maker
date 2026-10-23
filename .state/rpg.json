@@ -1,20 +1,20 @@
 {
-  "day": 17,
+  "day": 18,
   "lap": 1,
-  "lap_day": 17,
-  "pos": 51,
+  "lap_day": 18,
+  "pos": 54,
   "boss_cleared": [
     "草原",
     "迷いの森"
   ],
   "hero": {
-    "level": 5,
-    "exp": 121,
-    "max_hp": 70,
-    "hp": 35,
-    "base_atk": 19,
-    "base_def": 6,
-    "gold": 413,
+    "level": 6,
+    "exp": 0,
+    "max_hp": 80,
+    "hp": 80,
+    "base_atk": 22,
+    "base_def": 7,
+    "gold": 441,
     "potions": 2,
     "weapon": {
       "name": "銅の剣",
@@ -25,20 +25,26 @@
       "power": 5
     }
   },
-  "kills": 20,
+  "kills": 22,
   "deaths": 0,
-  "last_date": "2026-10-22",
+  "last_date": "2026-10-23",
   "last": {
-    "date": "2026-10-22",
-    "contributions": 17,
+    "date": "2026-10-23",
+    "contributions": 104,
     "steps": 3,
     "events": [
-      "旅の商人に出会った",
+      "コウモリを倒した！ (+12EXP)",
       "スケルトンを倒した！ (+17EXP)",
-      "古い祠で力を授かった（攻撃+2）"
+      "レベルが上がった！ Lv.6",
+      "壁の鉱石がかすかに光っている"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-23",
+      "contributions": 104,
+      "text": "コウモリを倒した！ (+12EXP) / スケルトンを倒した！ (+17EXP) / レベルが上がった！ Lv.6 / 壁の鉱石がかすかに光っている"
+    },
     {
       "date": "2026-10-22",
       "contributions": 17,
