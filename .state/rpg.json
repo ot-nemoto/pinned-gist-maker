@@ -1,20 +1,20 @@
 {
-  "day": 18,
+  "day": 19,
   "lap": 1,
-  "lap_day": 18,
-  "pos": 54,
+  "lap_day": 19,
+  "pos": 57,
   "boss_cleared": [
     "草原",
     "迷いの森"
   ],
   "hero": {
     "level": 6,
-    "exp": 0,
+    "exp": 34,
     "max_hp": 80,
-    "hp": 80,
+    "hp": 65,
     "base_atk": 22,
     "base_def": 7,
-    "gold": 441,
+    "gold": 519,
     "potions": 2,
     "weapon": {
       "name": "銅の剣",
@@ -25,21 +25,25 @@
       "power": 5
     }
   },
-  "kills": 22,
+  "kills": 24,
   "deaths": 0,
-  "last_date": "2026-10-23",
+  "last_date": "2026-10-24",
   "last": {
-    "date": "2026-10-23",
-    "contributions": 104,
+    "date": "2026-10-24",
+    "contributions": 77,
     "steps": 3,
     "events": [
-      "コウモリを倒した！ (+12EXP)",
+      "宝箱から42Gを見つけた",
       "スケルトンを倒した！ (+17EXP)",
-      "レベルが上がった！ Lv.6",
-      "壁の鉱石がかすかに光っている"
+      "スケルトンを倒した！ (+17EXP)"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-24",
+      "contributions": 77,
+      "text": "宝箱から42Gを見つけた / スケルトンを倒した！ (+17EXP) / スケルトンを倒した！ (+17EXP)"
+    },
     {
       "date": "2026-10-23",
       "contributions": 104,
