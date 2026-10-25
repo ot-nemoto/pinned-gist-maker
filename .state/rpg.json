@@ -1,20 +1,20 @@
 {
-  "day": 19,
+  "day": 20,
   "lap": 1,
-  "lap_day": 19,
-  "pos": 57,
+  "lap_day": 20,
+  "pos": 60,
   "boss_cleared": [
     "草原",
     "迷いの森"
   ],
   "hero": {
     "level": 6,
-    "exp": 34,
+    "exp": 75,
     "max_hp": 80,
-    "hp": 65,
+    "hp": 38,
     "base_atk": 22,
     "base_def": 7,
-    "gold": 519,
+    "gold": 622,
     "potions": 2,
     "weapon": {
       "name": "銅の剣",
@@ -25,20 +25,25 @@
       "power": 5
     }
   },
-  "kills": 24,
+  "kills": 26,
   "deaths": 0,
-  "last_date": "2026-10-24",
+  "last_date": "2026-10-25",
   "last": {
-    "date": "2026-10-24",
-    "contributions": 77,
+    "date": "2026-10-25",
+    "contributions": 85,
     "steps": 3,
     "events": [
-      "宝箱から42Gを見つけた",
-      "スケルトンを倒した！ (+17EXP)",
+      "宝箱から60Gを見つけた",
+      "ゴーレムを倒した！ (+24EXP)",
       "スケルトンを倒した！ (+17EXP)"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-25",
+      "contributions": 85,
+      "text": "宝箱から60Gを見つけた / ゴーレムを倒した！ (+24EXP) / スケルトンを倒した！ (+17EXP)"
+    },
     {
       "date": "2026-10-24",
       "contributions": 77,
