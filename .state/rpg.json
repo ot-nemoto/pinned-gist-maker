@@ -1,44 +1,51 @@
 {
-  "day": 21,
+  "day": 22,
   "lap": 1,
-  "lap_day": 21,
-  "pos": 63,
+  "lap_day": 22,
+  "pos": 66,
   "boss_cleared": [
     "草原",
-    "迷いの森"
+    "迷いの森",
+    "地下洞窟"
   ],
   "hero": {
-    "level": 6,
-    "exp": 99,
-    "max_hp": 80,
-    "hp": 18,
-    "base_atk": 22,
-    "base_def": 7,
-    "gold": 689,
+    "level": 7,
+    "exp": 3,
+    "max_hp": 90,
+    "hp": 90,
+    "base_atk": 25,
+    "base_def": 8,
+    "gold": 49,
     "potions": 2,
     "weapon": {
       "name": "銅の剣",
       "power": 3
     },
     "armor": {
-      "name": "鎖かたびら",
-      "power": 5
+      "name": "魔法の鎧",
+      "power": 14
     }
   },
-  "kills": 27,
+  "kills": 28,
   "deaths": 0,
-  "last_date": "2026-10-26",
+  "last_date": "2026-10-27",
   "last": {
-    "date": "2026-10-26",
-    "contributions": 101,
+    "date": "2026-10-27",
+    "contributions": 92,
     "steps": 3,
     "events": [
-      "冷たい風が奥から吹いてくる",
-      "宝箱から42Gを見つけた",
-      "ゴーレムを倒した！ (+24EXP)"
+      "壁の鉱石がかすかに光っている",
+      "地底竜を討ち取った！！ (+120EXP)",
+      "レベルが上がった！ Lv.7",
+      "山小屋で休んだ、魔法の鎧を買った"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-27",
+      "contributions": 92,
+      "text": "壁の鉱石がかすかに光っている / 地底竜を討ち取った！！ (+120EXP) / レベルが上がった！ Lv.7 / 山小屋で休んだ、魔法の鎧を買った"
+    },
     {
       "date": "2026-10-26",
       "contributions": 101,
