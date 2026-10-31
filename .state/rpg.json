@@ -1,8 +1,8 @@
 {
-  "day": 25,
+  "day": 26,
   "lap": 1,
-  "lap_day": 25,
-  "pos": 75,
+  "lap_day": 26,
+  "pos": 78,
   "boss_cleared": [
     "草原",
     "迷いの森",
@@ -10,13 +10,13 @@
   ],
   "hero": {
     "level": 7,
-    "exp": 166,
+    "exp": 188,
     "max_hp": 90,
-    "hp": 29,
+    "hp": 25,
     "base_atk": 25,
     "base_def": 8,
-    "gold": 231,
-    "potions": 3,
+    "gold": 355,
+    "potions": 4,
     "weapon": {
       "name": "銅の剣",
       "power": 3
@@ -26,20 +26,25 @@
       "power": 14
     }
   },
-  "kills": 34,
+  "kills": 35,
   "deaths": 0,
-  "last_date": "2026-10-30",
+  "last_date": "2026-10-31",
   "last": {
-    "date": "2026-10-30",
-    "contributions": 120,
+    "date": "2026-10-31",
+    "contributions": 84,
     "steps": 3,
     "events": [
+      "宝箱から回復薬を見つけた",
       "スノーウルフを倒した！ (+22EXP)",
-      "氷の魔女を倒した！ (+34EXP)",
-      "宝箱から44Gを見つけた"
+      "宝箱から104Gを見つけた"
     ]
   },
   "journal": [
+    {
+      "date": "2026-10-31",
+      "contributions": 84,
+      "text": "宝箱から回復薬を見つけた / スノーウルフを倒した！ (+22EXP) / 宝箱から104Gを見つけた"
+    },
     {
       "date": "2026-10-30",
       "contributions": 120,
